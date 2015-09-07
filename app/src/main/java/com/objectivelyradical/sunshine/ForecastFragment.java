@@ -12,8 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,14 +58,6 @@ public class ForecastFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         String[] forecastArray = {
-                "Today - Rain, 19/22",
-                "Tomorrow - Rain, 18/21",
-                "Tuesday - Rain, 11/16",
-                "Wednesday - Snow, -5/-1",
-                "Thursday - Rain, 4/19",
-                "Friday - Rain, 16/17",
-                "Saturday - Rain, 12/18",
-                "Sunday - Rain, 9/18"
         };
         ArrayList<String> forecastList = new ArrayList<String>(Arrays.asList(forecastArray));
         adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast,
@@ -71,6 +65,16 @@ public class ForecastFragment extends Fragment {
 
         ListView list = (ListView)view.findViewById(R.id.listview_forecast);
         list.setAdapter(adapter);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String toastText = (String)parent.getItemAtPosition(position);
+                Toast toast = Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
+        // Load initial data
+        new FetchWeatherTask().execute("Tokorozawa");
         return view;
     }
 
