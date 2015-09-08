@@ -1,5 +1,6 @@
 package com.objectivelyradical.sunshine;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -68,9 +69,11 @@ public class ForecastFragment extends Fragment {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String toastText = (String)parent.getItemAtPosition(position);
-                Toast toast = Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT);
-                toast.show();
+                String forecastText = (String)parent.getItemAtPosition(position);
+                Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
+                detailIntent.putExtra("FORECAST_TEXT", forecastText);
+                startActivity(detailIntent);
+
             }
         });
         // Load initial data
