@@ -1,8 +1,10 @@
 package com.objectivelyradical.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.text.format.Time;
@@ -69,7 +71,7 @@ public class ForecastFragment extends Fragment {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String forecastText = (String)parent.getItemAtPosition(position);
+                String forecastText = (String) parent.getItemAtPosition(position);
                 Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
                 detailIntent.putExtra("FORECAST_TEXT", forecastText);
                 startActivity(detailIntent);
@@ -77,7 +79,10 @@ public class ForecastFragment extends Fragment {
             }
         });
         // Load initial data
-        new FetchWeatherTask().execute("Tokorozawa");
+        String location =  PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.settings_location_key),
+                getString(R.string.settings_location_default));
+        Log.d("ForecastFragment", location);
+        new FetchWeatherTask().execute(location);
         return view;
     }
 
@@ -88,7 +93,10 @@ public class ForecastFragment extends Fragment {
 
         int id = menuItem.getItemId();
         if(id == R.id.action_refresh) {
-            new FetchWeatherTask().execute("Tokorozawa");
+            String location = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.settings_location_key),
+                    getString(R.string.settings_location_default));
+            Log.d("ForecastFragment", location);
+            new FetchWeatherTask().execute(location);
         }
         return true;
     }
@@ -101,7 +109,9 @@ public class ForecastFragment extends Fragment {
         protected void onPostExecute(String[] strings) {
             //super.onPostExecute(strings);
             adapter.clear();
-            adapter.addAll(Arrays.asList(strings));
+            if(strings != null) {
+                adapter.addAll(Arrays.asList(strings));
+            }
         }
 
         protected String[] doInBackground(String... city) {

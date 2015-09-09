@@ -1,9 +1,13 @@
 package com.objectivelyradical.sunshine;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.io.Console;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +34,10 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            if(id == R.id.action_settings) {
+                Intent intent  = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+            }
         }
 
         return super.onOptionsItemSelected(item);
