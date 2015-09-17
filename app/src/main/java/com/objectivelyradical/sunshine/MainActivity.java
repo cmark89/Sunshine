@@ -13,7 +13,38 @@ import java.io.Console;
 public class MainActivity extends AppCompatActivity {
 
     @Override
+    protected void onStop() {
+        Log.d("MainActivity", "Lifecycle - onStop()");
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d("MainActivity", "Lifecycle - onDestroy()");
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d("MainActivity", "Lifecycle - onPause()");
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d("MainActivity", "Lifecycle - onResume()");
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d("MainActivity", "Lifecycle - onStart()");
+        super.onStart();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("MainActivity", "Lifecycle - onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
