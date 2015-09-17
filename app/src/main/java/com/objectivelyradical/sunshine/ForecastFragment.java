@@ -2,6 +2,7 @@ package com.objectivelyradical.sunshine;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -30,9 +31,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -60,8 +63,7 @@ public class ForecastFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        String[] forecastArray = {
-        };
+        String[] forecastArray = {};
         ArrayList<String> forecastList = new ArrayList<String>(Arrays.asList(forecastArray));
         adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast,
                 R.id.list_item_forecast_textview, forecastList);
@@ -75,15 +77,24 @@ public class ForecastFragment extends Fragment {
                 Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
                 detailIntent.putExtra("FORECAST_TEXT", forecastText);
                 startActivity(detailIntent);
-
             }
         });
+        return view;
+    }
+
+    @Override
+    // Update whenever the fragment starts
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    private void updateWeather() {
         // Load initial data
         String location =  PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.settings_location_key),
                 getString(R.string.settings_location_default));
         Log.d("ForecastFragment", location);
         new FetchWeatherTask().execute(location);
-        return view;
     }
 
 
@@ -93,12 +104,26 @@ public class ForecastFragment extends Fragment {
 
         int id = menuItem.getItemId();
         if(id == R.id.action_refresh) {
-            String location = PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.settings_location_key),
-                    getString(R.string.settings_location_default));
-            Log.d("ForecastFragment", location);
-            new FetchWeatherTask().execute(location);
+           updateWeather();
+        } else if(id == R.id.action_view_location) {
+            viewPreferredLocation();
         }
         return true;
+    }
+
+    private void viewPreferredLocation() {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        String location = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
+        getString(R.string.settings_location_key), "");
+        intent.setData(Uri.parse("geo:0,0?q="+location));
+        if(intent.resolveActivity(getActivity().getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Toast toast = new Toast(getActivity());
+            toast.setText("Unable to display location.  No map application found.");
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
@@ -227,8 +252,38 @@ public class ForecastFragment extends Fragment {
             long roundedHigh = Math.round(high);
             long roundedLow = Math.round(low);
 
-            String highLowStr = roundedHigh + "/" + roundedLow;
+            String highLowStr = convertTempToSystemUnit(roundedHigh) + "/" +
+                    convertTempToSystemUnit(roundedLow);
             return highLowStr;
+        }
+
+
+        private String convertTempToSystemUnit(double temp) {
+            int units = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getActivity()).
+                    getString(getString(R.string.settings_units_key), "1"));
+
+            double newTemp = 0;
+            switch(units) {
+                case(2):
+                    // Imperial
+                    newTemp = (temp * 1.8f) + 32;
+                    return "" + (int)newTemp;
+                case(3):
+                    // Kelvin
+                    newTemp = temp + 273.15f;
+                    return "" + (int)newTemp;
+                case(4):
+                    // Rankine
+                    newTemp = (temp + 273.15) * 1.8f;
+                    return "" + (int)newTemp;
+                case(5):
+                    // Wacky
+                    Random rand = new Random();
+                    return "" + (rand.nextInt(200) - 100);
+                default:
+                    // Celsius
+                    return "" + (int)temp;
+            }
         }
     }
 }

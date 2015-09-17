@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ShareActionProvider;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -31,12 +32,9 @@ public class DetailActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            if(id == R.id.action_settings) {
-                Intent intent  = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
-            }
+            Intent intent  = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         }
-
         return super.onOptionsItemSelected(item);
     }
 }

@@ -2,6 +2,8 @@
     <string name="app_name">Sunshine</string>
     <string name="action_settings">Settings</string>
     <string name="action_refresh">Refresh</string>
+    <string name="action_view_location">View Location</string>
+    <string name="action_share">Share</string>
     <string name="title_activity_detail" translatable="false">DetailActivity</string>
     <string name="shared_preferences_name" translatable="false">SunshineSettings</string>
 
@@ -12,5 +14,25 @@
     <string name="settings_location_key" translatable="false">location</string>
     <string name="settings_location_description">The city for which weather data will be loaded.</string>
     <string name="settings_location_default" translatable="false">Tokorozawa</string>
+
+
+    <string name="settings_units_name">Temperature Units</string>
+    <string name="settings_units_key" translatable="false">temperatureUnits</string>
+    <string-array name="settings_units_entries">
+        <item>Metric</item>
+        <item>Imperial</item>
+        <item>Kelvin</item>
+        <item>Rankine</item>
+        <item>Wacky</item>
+    </string-array>
+    <string-array name="settings_units_entry_values" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+    <string name="settings_units_description">Choose the units in which to display temperatures.</string>
+    <string name="settings_units_default">1</string>
 
 </resources>

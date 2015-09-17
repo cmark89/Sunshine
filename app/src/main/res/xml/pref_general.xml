@@ -7,4 +7,16 @@
 
         />
 
+    <ListPreference
+        android:key="@string/settings_units_key"
+        android:title="@string/settings_units_name"
+        android:entries="@array/settings_units_entries"
+        android:entryValues="@array/settings_units_entry_values"
+        android:summary="@string/settings_units_description"
+        android:defaultValue="@string/settings_units_default"
+
+        />
+
+
+
 </PreferenceScreen>
