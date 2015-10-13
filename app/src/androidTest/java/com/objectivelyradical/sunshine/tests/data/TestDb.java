@@ -15,12 +15,15 @@
  */
 package com.objectivelyradical.sunshine.tests.data;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
 import com.objectivelyradical.sunshine.Data.WeatherContract;
 import com.objectivelyradical.sunshine.Data.WeatherDbHelper;
+import com.objectivelyradical.sunshine.Data.WeatherContract.LocationEntry;
+import com.objectivelyradical.sunshine.Data.WeatherContract.WeatherEntry;
 
 import java.util.HashSet;
 
@@ -114,22 +117,34 @@ public class TestDb extends AndroidTestCase {
     */
     public void testLocationTable() {
         // First step: Get reference to writable database
+        SQLiteDatabase db = new WeatherDbHelper(mContext).getWritableDatabase();
 
-        // Create ContentValues of what you want to insert
         // (you can use the createNorthPoleLocationValues if you wish)
 
         // Insert ContentValues into database and get a row ID back
 
+        long rowId = insertLocation(db);
+        assertTrue("Failed to insert table row.", rowId != -1);
+
         // Query the database and receive a Cursor back
+        Cursor cursor = db.query(LocationEntry.TABLE_NAME, null, "_ID = ?", new String[]{Long.toString(rowId)}, null,
+                null, null, null);
+        assertNotNull("The returned cursor is null.", cursor);
 
         // Move the cursor to a valid database row
+        cursor.moveToFirst();
 
         // Validate data in resulting Cursor with the original ContentValues
         // (you can use the validateCurrentRecord function in TestUtilities to validate the
         // query if you like)
+        assertEquals("City name TOKOROZAWA not found.", "Tokorozawa", cursor.getString(cursor.getColumnIndex(LocationEntry.COLUMN_CITY_NAME)));
+        assertEquals("Location setting 359-1143 not found.", "359-1143", cursor.getString(cursor.getColumnIndex(LocationEntry.COLUMN_LOCATION_SETTING)));
+        assertEquals("Latitude 35.8000 not found.", 35.8000f, cursor.getFloat(cursor.getColumnIndex(LocationEntry.COLUMN_COORD_LAT)));
+        assertEquals("Latitude 139.4667 not found.", 139.4667f, cursor.getFloat(cursor.getColumnIndex(LocationEntry.COLUMN_COORD_LONG)));
 
         // Finally, close the cursor and database
-
+        cursor.close();
+        db.close();
     }
 
     /*
@@ -141,26 +156,49 @@ public class TestDb extends AndroidTestCase {
     public void testWeatherTable() {
         // First insert the location, and then use the locationRowId to insert
         // the weather. Make sure to cover as many failure cases as you can.
+        SQLiteDatabase db = new WeatherDbHelper(mContext).getWritableDatabase();
+        long locationId = insertLocation(db);
 
-        // Instead of rewriting all of the code we've already written in testLocationTable
-        // we can move this code to insertLocation and then call insertLocation from both
-        // tests. Why move it? We need the code to return the ID of the inserted location
-        // and our testLocationTable can only return void because it's a test.
-
-        // First step: Get reference to writable database
+        assertTrue("Failed to insert location table row.", locationId != -1);
 
         // Create ContentValues of what you want to insert
         // (you can use the createWeatherValues TestUtilities function if you wish)
+        ContentValues values = new ContentValues();
+        values.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
+        values.put(WeatherEntry.COLUMN_DATETEXT, 19990101);
+        values.put(WeatherEntry.COLUMN_DEGREES, 100f);
+        values.put(WeatherEntry.COLUMN_HUMIDITY, 0f);
+        values.put(WeatherEntry.COLUMN_MAX_TEMP, 5000f);
+        values.put(WeatherEntry.COLUMN_MIN_TEMP, -1000f);
+        values.put(WeatherEntry.COLUMN_PRESSURE, 23f);
+        values.put(WeatherEntry.COLUMN_SHORT_DESC, "rainy");
+        values.put(WeatherEntry.COLUMN_WEATHER_ID, 77);
+        values.put(WeatherEntry.COLUMN_WIND_SPEED, 23.23f);
 
-        // Insert ContentValues into database and get a row ID back
+        long weatherId = db.insert(WeatherEntry.TABLE_NAME, null, values);
+
+        assertTrue("Failed to insert weather table row.", weatherId != -1);
 
         // Query the database and receive a Cursor back
+        Cursor cursor = db.query(WeatherEntry.TABLE_NAME, null, null, null, null, null, null, null);
 
-        // Move the cursor to a valid database row
+        assertTrue("Failed to move cursor to first row.", cursor.moveToFirst());
 
-        // Validate data in resulting Cursor with the original ContentValues
-        // (you can use the validateCurrentRecord function in TestUtilities to validate the
-        // query if you like)
+        assertEquals("Location ID incorrect.", locationId, cursor.getInt(cursor.getColumnIndex(WeatherEntry.COLUMN_LOC_KEY)));
+        assertEquals("Datetext incorrect.", 19990101, cursor.getInt(cursor.getColumnIndex(WeatherEntry.COLUMN_DATETEXT)));
+        assertEquals("Degrees incorrect.", 100f, cursor.getFloat(cursor.getColumnIndex(WeatherEntry.COLUMN_DEGREES)));
+        assertEquals("Humidity incorrect.", 0f, cursor.getFloat(cursor.getColumnIndex(WeatherEntry.COLUMN_HUMIDITY)));
+        assertEquals("Max temp incorrect.", 5000f, cursor.getFloat(cursor.getColumnIndex(WeatherEntry.COLUMN_MAX_TEMP)));
+        assertEquals("Min temp incorrect.", -1000f, cursor.getFloat(cursor.getColumnIndex(WeatherEntry.COLUMN_MIN_TEMP)));
+        assertEquals("Pressure incorrect.", 23f, cursor.getFloat(cursor.getColumnIndex(WeatherEntry.COLUMN_PRESSURE)));
+        assertEquals("Short description incorrect.", "rainy", cursor.getString(cursor.getColumnIndex(WeatherEntry.COLUMN_SHORT_DESC)));
+        assertEquals("Weather ID incorrect.", 77, cursor.getInt(cursor.getColumnIndex(WeatherEntry.COLUMN_WEATHER_ID)));
+        assertEquals("Wind speed incorrect.", 23.23f, cursor.getFloat(cursor.getColumnIndex(WeatherEntry.COLUMN_WIND_SPEED)));
+
+        assertFalse("Table contains multiple rows of data.", cursor.moveToNext());
+
+        cursor.close();
+        db.close();
 
         // Finally, close the cursor and database
     }
@@ -171,7 +209,13 @@ public class TestDb extends AndroidTestCase {
         code from testLocationTable to here so that you can call this code from both
         testWeatherTable and testLocationTable.
      */
-    public long insertLocation() {
-        return -1L;
+    public long insertLocation(SQLiteDatabase db) {
+        ContentValues values = new ContentValues();
+        values.put(LocationEntry.COLUMN_CITY_NAME, "Tokorozawa");
+        values.put(LocationEntry.COLUMN_COORD_LAT, "35.8000");
+        values.put(LocationEntry.COLUMN_COORD_LONG, "139.4667");
+        values.put(LocationEntry.COLUMN_LOCATION_SETTING, "359-1143");
+
+        return db.insert(LocationEntry.TABLE_NAME, null, values);
     }
 }
