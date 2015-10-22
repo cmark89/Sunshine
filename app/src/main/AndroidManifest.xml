@@ -35,6 +35,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.objectivelyradical.sunshine.MainActivity" />
         </activity>
+
+
+
+        <provider
+            android:name="com.objectivelyradical.sunshine.Data.WeatherProvider"
+            android:authorities="com.objectivelyradical.sunshine"
+            />
     </application>
 
 </manifest>
