@@ -1,5 +1,8 @@
-<resources>
+<resources
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"
+    >
     <string name="app_name">Sunshine</string>
+    <string name="forecast_fragment_tag">FFTAG</string>
     <string name="action_settings">Settings</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_view_location">View Location</string>
@@ -33,6 +36,16 @@
         <item>5</item>
     </string-array>
     <string name="settings_units_description">Choose the units in which to display temperatures.</string>
+
     <string name="settings_units_default">1</string>
+    <!-- Date label when displaying today's weather forecast [CHAR LIMIT=20] -->
+    <string name="today">Today</string>
+
+    <!-- Date label when displaying tomorrow's weather forecast [CHAR LIMIT=20] -->
+    <string name="tomorrow">Tomorrow</string>
+
+    <!-- Date format for displaying day of week and date (i.e. Mon Jun 1) [CHAR LIMIT=20] -->
+    <string name="format_full_friendly_date"><xliff:g id="day">%1$s</xliff:g>, <xliff:g id="date">%2$s</xliff:g></string>
+    <string name="format_degrees"><xliff:g id="temperature">%1.0f</xliff:g>\u00B0</string>
 
 </resources>

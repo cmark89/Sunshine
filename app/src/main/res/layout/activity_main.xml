@@ -2,4 +2,4 @@
     xmlns:tools="http://schemas.android.com/tools" android:id="@+id/fragment"
     android:name="com.objectivelyradical.sunshine.ForecastFragment"
     tools:layout="@layout/fragment_main" android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    android:layout_height="match_parent" android:tag="@string/forecast_fragment_tag" />

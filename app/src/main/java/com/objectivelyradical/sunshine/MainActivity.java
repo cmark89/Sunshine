@@ -1,6 +1,7 @@
 package com.objectivelyradical.sunshine;
 
 import android.content.Intent;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,7 +12,7 @@ import android.widget.ShareActionProvider;
 import java.io.Console;
 
 public class MainActivity extends AppCompatActivity {
-
+    String mLocation;
     @Override
     protected void onStop() {
         Log.d("MainActivity", "Lifecycle - onStop()");
@@ -34,6 +35,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         Log.d("MainActivity", "Lifecycle - onResume()");
         super.onResume();
+
+        String newLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(
+            getString(R.string.settings_location_key), getString(R.string.settings_location_default));
+        if(newLocation != mLocation) {
+            mLocation = newLocation;
+            ((ForecastFragment)getSupportFragmentManager().findFragmentByTag(
+                    getString(R.string.forecast_fragment_tag))).onLocationChanged();
+        }
     }
 
     @Override
@@ -47,6 +56,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "Lifecycle - onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mLocation = PreferenceManager.getDefaultSharedPreferences(this).getString
+                (getString(R.string.settings_location_key), getString(R.string.settings_location_default));
+        //if(savedInstanceState == null) {
+            //getSupportFragmentManager().beginTransaction().add(R.id.fragment, new ForecastFragment()).commit();
+       // }
     }
 
 

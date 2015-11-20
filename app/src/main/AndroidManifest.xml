@@ -41,6 +41,8 @@
         <provider
             android:name="com.objectivelyradical.sunshine.Data.WeatherProvider"
             android:authorities="com.objectivelyradical.sunshine"
+            android:enabled="true"
+            android:exported="true"
             />
     </application>
 
