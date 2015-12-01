@@ -17,6 +17,14 @@
 
         />
 
+    <CheckBoxPreference
+        android:key="@string/settings_notification_key"
+        android:title="@string/settings_notification_title"
+        android:defaultValue="@string/settings_notification_default"
+        android:summaryOn="@string/settings_notification_on"
+        android:summaryOff="@string/settings_notification_off"
+        />
+
 
 
 </PreferenceScreen>

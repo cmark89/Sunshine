@@ -3,32 +3,40 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/touch_selector"
+    >
+    <FrameLayout
+        android:layout_width="60dp"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/list_item_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/sunshine_icon"
+            android:maxHeight="40dp"
+            android:maxWidth="40dp"
+            android:gravity="center"
+            android:adjustViewBounds="true"
+            android:layout_margin="12dp"
+            />
+    </FrameLayout>
 
-    <ImageView
-        android:id="@+id/list_item_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/sunshine_icon"
-        android:maxHeight="40dp"
-        android:maxWidth="40dp"
-        android:layout_gravity="center"
-        android:adjustViewBounds="true"
-        android:layout_margin="12dp"
-        android:layout_weight="0.15"/>
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:paddingLeft="0dp"
-        android:layout_weight="2">
+        android:layout_weight="7">
         <TextView
             android:id="@+id/list_item_date_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:textAppearanceLarge"
             />
         <TextView
             android:id="@+id/list_item_forecast_textview"
@@ -36,7 +44,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:textAppearanceSmall"
+            />
 
     </LinearLayout>
 
@@ -45,7 +56,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_gravity="end"
-        android:layout_weight=".5"
+        android:layout_weight="5"
         android:gravity="center">
         <TextView
             android:id="@+id/list_item_high_textview"
@@ -54,6 +65,8 @@
             android:gravity="center_vertical"
             android:layout_weight="1"
             android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:textAppearanceLarge"
             />
         <TextView
             android:id="@+id/list_item_low_textview"
@@ -61,7 +74,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginBottom="4dp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:textAppearanceSmall"/>
 
     </LinearLayout>
 

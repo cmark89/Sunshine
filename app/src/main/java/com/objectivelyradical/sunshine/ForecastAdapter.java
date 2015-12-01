@@ -22,9 +22,13 @@ public class ForecastAdapter extends CursorAdapter {
     }
     private final int VIEW_TYPE_TODAY = 0;
     private final int VIEW_TYPE_DEFAULT = 1;
+    private boolean mUseTodayLayout = true;
+    public void setUseTodayLayout(boolean b) {
+        mUseTodayLayout = b;
+    }
     @Override
     public int getItemViewType(int position) {
-        return (position == 0) ? VIEW_TYPE_TODAY : VIEW_TYPE_DEFAULT;
+        return (position == 0 && mUseTodayLayout) ? VIEW_TYPE_TODAY : VIEW_TYPE_DEFAULT;
     }
 
     @Override
@@ -86,6 +90,13 @@ public class ForecastAdapter extends CursorAdapter {
         TextView highView = holder.highView;
         TextView lowView = holder.lowView;
         TextView weatherView = holder.descriptionView;
+        ImageView icon = holder.iconView;
+
+        if(getItemViewType(cursor.getPosition()) == VIEW_TYPE_TODAY) {
+            icon.setImageResource(Utility.weatherCodeToArtPath(cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID)));
+        } else {
+            icon.setImageResource(Utility.weatherCodeToIconPath(cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID)));
+        }
 
         dateView.setText(Utility.getFriendlyDayString(mContext, cursor.getLong
                 (ForecastFragment.COL_WEATHER_DATE)));
@@ -94,9 +105,6 @@ public class ForecastAdapter extends CursorAdapter {
         lowView.setText(Utility.convertTempToSystemUnit(cursor.getInt
                 (ForecastFragment.COL_WEATHER_MIN_TEMP), mContext));
         weatherView.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
-
-        //TextView tv = (TextView)view;
-        //tv.setText(convertCursorRowToUXFormat(cursor));
     }
 
     public static class ViewHolder {

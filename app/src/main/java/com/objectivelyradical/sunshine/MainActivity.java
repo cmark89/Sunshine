@@ -1,6 +1,7 @@
 package com.objectivelyradical.sunshine;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,17 +10,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ShareActionProvider;
 
+import com.objectivelyradical.sunshine.Data.WeatherContract;
+import com.objectivelyradical.sunshine.sync.SunshineSyncAdapter;
+
 import java.io.Console;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback{
     String mLocation;
+    boolean mTwoPane = false;
+    final String DETAIL_FRAGMENT_TAG = "DFTAG";
+
     @Override
     protected void onStop() {
         Log.d("MainActivity", "Lifecycle - onStop()");
         super.onStop();
     }
 
-    @Override
     protected void onDestroy() {
         Log.d("MainActivity", "Lifecycle - onDestroy()");
         super.onDestroy();
@@ -38,10 +44,23 @@ public class MainActivity extends AppCompatActivity {
 
         String newLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(
             getString(R.string.settings_location_key), getString(R.string.settings_location_default));
-        if(newLocation != mLocation) {
+
+        if(newLocation != null && !newLocation.equals(mLocation)) {
+            Log.d("MainActivity", "UPDATE LOCATIONS");
+            Log.d("MainActivity", mLocation + " --> " + newLocation);
             mLocation = newLocation;
-            ((ForecastFragment)getSupportFragmentManager().findFragmentByTag(
-                    getString(R.string.forecast_fragment_tag))).onLocationChanged();
+            ForecastFragment ff = (ForecastFragment)getSupportFragmentManager()
+                    .findFragmentById(R.id.fragment_forecast);
+            if(ff != null) {
+                Log.d("MainActivity", "Update ForecastFragment");
+                ff.onLocationChanged();
+            }
+            DetailActivityFragment df = (DetailActivityFragment)getSupportFragmentManager()
+                    .findFragmentByTag(DETAIL_FRAGMENT_TAG);
+            if(df != null) {
+                Log.d("MainActivity", "Update DetailFragment");
+                df.onLocationChanged(mLocation);
+            }
         }
     }
 
@@ -58,9 +77,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mLocation = PreferenceManager.getDefaultSharedPreferences(this).getString
                 (getString(R.string.settings_location_key), getString(R.string.settings_location_default));
-        //if(savedInstanceState == null) {
-            //getSupportFragmentManager().beginTransaction().add(R.id.fragment, new ForecastFragment()).commit();
-       // }
+        if(findViewById(R.id.weather_detail_container) != null) {
+            // This is a two pane layout on a tablet
+            mTwoPane = true;
+            if(savedInstanceState == null) {
+                // We are just starting up, so add the second fragment
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.weather_detail_container, new DetailActivityFragment(),
+                                DETAIL_FRAGMENT_TAG).commit();
+            }
+        } else {
+            mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
+        }
+        ForecastFragment ff = (ForecastFragment)getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_forecast);
+        ff.setUseTodayLayout(!mTwoPane);
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
 
@@ -85,7 +118,17 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }
-
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemSelected(Uri dateUri) {
+        if(mTwoPane) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.weather_detail_container,
+                    DetailActivityFragment.initializeInstance(dateUri)).commit();
+        } else {
+            Intent detailIntent = new Intent(this, DetailActivity.class).setData(dateUri);
+            startActivity(detailIntent);
+        }
     }
 }

@@ -48,4 +48,38 @@
     <string name="format_full_friendly_date"><xliff:g id="day">%1$s</xliff:g>, <xliff:g id="date">%2$s</xliff:g></string>
     <string name="format_degrees"><xliff:g id="temperature">%1.0f</xliff:g>\u00B0</string>
 
+    <!-- Windspeed formats -->
+    <!-- Wind in mph [CHAR LIMIT=25] -->
+    <string name="format_wind_mph">
+        Wind: <xliff:g id="speed">%1$1.0f</xliff:g> mph <xliff:g id="direction">%2$s</xliff:g>
+    </string>
+
+        <!-- Wind in kph [CHAR LIMIT=25] -->
+    <string name="format_wind_kmh">
+        Wind: <xliff:g id="speed">%1$1.0f</xliff:g> km/h <xliff:g id="direction">%2$s</xliff:g>
+    </string>
+
+    <!-- Pressure format CHAR LIMIT=25] -->
+    <string name="format_pressure">Pressure: <xliff:g id="pressure">%1.0f</xliff:g> hPa</string>
+
+    <!-- Humidity format CHAR LIMIT=25]-->
+    <string name="format_humidity">Humidity: <xliff:g id="humidity">%1.0f</xliff:g> %%</string>
+
+    <!-- Account type (for sync-adapter authenticator) -->
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">sunshine.example.com</string>
+    <string name="content_authority">com.objectivelyradical.sunshine</string>
+
+    <!-- Notification Format -->
+    <string name="format_notification">Forecast: <xliff:g id="condition">%1$s</xliff:g> High: <xliff:g id="high">%2$s</xliff:g> Low: <xliff:g id="low">%3$s</xliff:g>
+    </string>
+    <!-- Strings related to Notification preference -->
+    <string name="pref_last_notification">last_notification
+    </string>
+
+    <string name="settings_notification_key" translate="false">settings_notifications_enabled</string>
+    <string name="settings_notification_title">Send Notifications</string>
+    <string name="settings_notification_default" translate="false">true</string>
+    <string name="settings_notification_on">Enabled</string>
+    <string name="settings_notification_off">Disabled</string>
 </resources>

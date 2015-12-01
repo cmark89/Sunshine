@@ -140,4 +140,48 @@ public class Utility {
         String monthDayString = monthDayFormat.format(dateInMillis);
         return monthDayString;
     }
+
+    public static int weatherCodeToIconPath(int code) {
+        if(code >= 200 && code <= 232) {
+            return R.drawable.ic_storm;
+        } else if (code >= 300 && code <=321) {
+            return R.drawable.ic_light_rain;
+        } else if (code >= 400 && code <= 531) {
+            return R.drawable.ic_rain;
+        } else if (code >= 600 && code <= 622) {
+            return R.drawable.ic_snow;
+        } else if (code >= 700 && code <= 781) {
+            return R.drawable.ic_fog;
+        } else if(code == 800) {
+            return R.drawable.ic_clear;
+        } else if (code >= 801 && code <= 802) {
+            return R.drawable.ic_light_clouds;
+        } else if (code >= 803 && code <= 804) {
+            return R.drawable.ic_cloudy;
+        } else {
+            return R.drawable.ic_storm;
+        }
+    }
+
+    public static int weatherCodeToArtPath(int code) {
+        if(code >= 200 && code <= 232) {
+            return R.drawable.art_storm;
+        } else if (code >= 300 && code <=321) {
+            return R.drawable.art_light_rain;
+        } else if (code >= 400 && code <= 531) {
+            return R.drawable.art_rain;
+        } else if (code >= 600 && code <= 622) {
+            return R.drawable.art_snow;
+        } else if (code >= 700 && code <= 781) {
+            return R.drawable.art_fog;
+        } else if(code == 800) {
+            return R.drawable.art_clear;
+        } else if (code >= 801 && code <= 802) {
+            return R.drawable.art_light_clouds;
+        } else if (code >= 803 && code <= 804) {
+            return R.drawable.art_clouds;
+        } else {
+            return R.drawable.art_storm;
+        }
+    }
 }

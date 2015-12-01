@@ -1,11 +1,16 @@
 package com.objectivelyradical.sunshine;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -26,6 +31,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.content.CursorLoader;
 import com.objectivelyradical.sunshine.Data.WeatherContract;
+import com.objectivelyradical.sunshine.sync.SunshineSyncAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -69,8 +76,19 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
 
+    private int mSelectedIndex = 0;
+    private static final String SELECTED_INDEX_KEY = "SCROLL_VIEW_INDEX";
+    private boolean mUseTodayLayout = false;
+
     ForecastAdapter adapter;
     public ForecastFragment() {
+    }
+
+    public void setUseTodayLayout(boolean b) {
+        mUseTodayLayout = b;
+        if(adapter != null) {
+            adapter.setUseTodayLayout(mUseTodayLayout);
+        }
     }
 
     // Loader Callbacks:
@@ -85,6 +103,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         adapter.swapCursor(cursor);
+        ListView list = (ListView)getActivity().findViewById(R.id.listview_forecast);
+        if(list != null) {
+            list.smoothScrollToPosition(mSelectedIndex);
+            list.setItemChecked(mSelectedIndex, true);
+        }
     }
 
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
@@ -96,6 +119,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         // Indicates the fragment has items to contribute to the global options menu
         setHasOptionsMenu(true);
+        if(savedInstanceState != null) {
+            mSelectedIndex = savedInstanceState.getInt(SELECTED_INDEX_KEY);
+        }
     }
 
     @Override
@@ -112,7 +138,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+                             final Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -125,21 +151,22 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         Cursor cursor = getContext().getContentResolver().query(weatherForLocationUri, null, null,
                 null, sortOrder);
         adapter = new ForecastAdapter(getContext(), cursor, 0);
+        adapter.setUseTodayLayout(mUseTodayLayout);
 
         ListView list = (ListView)view.findViewById(R.id.listview_forecast);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
+                mSelectedIndex = position;
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent detailIntent = new Intent(getActivity(), DetailActivity.class).setData
-                            (WeatherContract.WeatherEntry.buildWeatherLocationWithDate
-                                    (locationSetting, cursor.getLong(COL_WEATHER_DATE)));
-                    startActivity(detailIntent);
+                    Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting,
+                            cursor.getLong(COL_WEATHER_DATE));
+                    ((Callback)(getActivity())).onItemSelected(uri);
                 }
             }
         });
@@ -150,16 +177,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     // Update whenever the fragment starts
     public void onStart() {
         super.onStart();
-        //updateWeather();
     }
 
     private void updateWeather() {
-        Log.d("ForecastFragment", "updateWeather()");
-        // Load initial data
-        String location =  PreferenceManager.getDefaultSharedPreferences(getContext()).getString(getString(R.string.settings_location_key),
-                getString(R.string.settings_location_default));
-        Log.d("ForecastFragment", location);
-        new FetchWeatherTask(getActivity()).execute(location);
+        SunshineSyncAdapter.syncImmediately(getActivity());
     }
 
 
@@ -188,9 +209,28 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void viewPreferredLocation() {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        String location = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(
-        getString(R.string.settings_location_key), "");
-        intent.setData(Uri.parse("geo:0,0?q="+location));
+
+        float lat = 0;
+        float lon = 0;
+
+        String[] projection = new String[]{
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING,
+                WeatherContract.LocationEntry.COLUMN_COORD_LAT,
+                WeatherContract.LocationEntry.COLUMN_COORD_LONG,
+        };
+        final int LOCATION_COL = 0;
+        final int LAT_COL = 1;
+        final int LON_COL = 2;
+        String location = PreferenceManager.getDefaultSharedPreferences(getContext()).getString
+                (getString(R.string.settings_location_key), getString(R.string.settings_location_default));
+        Cursor cr = getContext().getContentResolver().query(WeatherContract.LocationEntry
+                .CONTENT_URI, projection, WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING +
+                        "== ?", new String[] { location }, null);
+        if(cr.moveToFirst()) {
+            lat = cr.getFloat(LAT_COL);
+            lon = cr.getFloat(LON_COL);
+        }
+        intent.setData(Uri.parse("geo:"+lat+","+lon));
         if(intent.resolveActivity(getActivity().getPackageManager()) != null) {
             startActivity(intent);
         } else {
@@ -199,5 +239,26 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             toast.setDuration(Toast.LENGTH_SHORT);
             toast.show();
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(SELECTED_INDEX_KEY, mSelectedIndex);
+        super.onSaveInstanceState(outState);
+
+    }
+
+
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
     }
 }

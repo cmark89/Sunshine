@@ -13,6 +13,12 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        // We don't need to add the fragment if we're resuming, because it's already been added
+        if(savedInstanceState == null) {
+            DetailActivityFragment df = DetailActivityFragment.initializeInstance(getIntent().getData());
+            getSupportFragmentManager().beginTransaction().replace(R.id.weather_detail_container, df)
+                    .commit();
+        }
     }
 
 

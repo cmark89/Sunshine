@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.ShareActionProvider;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.objectivelyradical.sunshine.Data.WeatherContract;
@@ -29,7 +30,20 @@ import java.net.URI;
 public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
     ShareActionProvider shareProvider;
     String detailString;
-    TextView text;
+    View rootView;
+
+    TextView mDay;
+    TextView mDate;
+    TextView mHigh;
+    TextView mLow;
+    TextView mDescription;
+    TextView mPressure;
+    TextView mWind;
+    TextView mHumidity;
+    ImageView mIcon;
+    TestView mCompass;
+    int mWeatherId;
+    Uri mUri;
 
     private static final int DETAIL_LOADER_ID = 667;
     private static final String[] FORECAST_COLUMNS = {
@@ -42,9 +56,37 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
             WeatherContract.LocationEntry.COLUMN_COORD_LAT,
             WeatherContract.LocationEntry.COLUMN_COORD_LONG,
+            WeatherContract.WeatherEntry.COLUMN_HUMIDITY,
+            WeatherContract.WeatherEntry.COLUMN_WIND_SPEED,
+            WeatherContract.WeatherEntry.COLUMN_DEGREES,
+            WeatherContract.WeatherEntry.COLUMN_PRESSURE,
+            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID
     };
+    static final int COL_HUMIDITY = 9;
+    static final int COL_WIND_SPEED = 10;
+    static final int COL_DEGREES = 11;
+    static final int COL_PRESSURE = 12;
+    static final int COL_WEATHER_ID = 13;
+
     public DetailActivityFragment() {
 
+    }
+
+    public static DetailActivityFragment initializeInstance(Uri uri) {
+        DetailActivityFragment f = new DetailActivityFragment();
+
+        Bundle args = new Bundle();
+        args.putString("uri", uri.toString());
+        f.setArguments(args);
+        return f;
+    }
+
+    public Uri getBundledUri() {
+        if(getArguments() != null) {
+            return Uri.parse(getArguments().getString("uri", ""));
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -55,10 +97,10 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent i = getActivity().getIntent();
-        Log.d("DetailActivityFragment", i.getDataString());
-
-        return new CursorLoader(getContext(), i.getData(), FORECAST_COLUMNS,
+        if(mUri == null) {
+            return null;
+        }
+        return new CursorLoader(getContext(), mUri, FORECAST_COLUMNS,
                 null, null, null);
     }
 
@@ -69,36 +111,85 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             if(shareProvider != null) {
                 shareProvider.setShareIntent(createForecastShareIntent());
             }
-            text.setText(detailString);
+            mWeatherId = data.getInt(COL_WEATHER_ID);
+
+            long date = data.getLong(ForecastFragment.COL_WEATHER_DATE);
+            // POPULATE THE text views
+            mDay.setText(Utility.getDayName(getActivity(), date));
+            mDate.setText(Utility.getFormattedMonthDay(getActivity(), date));
+
+            mHigh.setText(getString(R.string.format_degrees, data.getFloat(ForecastFragment.COL_WEATHER_MAX_TEMP)));
+            mLow.setText(getString(R.string.format_degrees, data.getFloat(ForecastFragment.COL_WEATHER_MIN_TEMP)));
+            mHumidity.setText(getString(R.string.format_humidity, data.getFloat(COL_HUMIDITY)));
+            mPressure.setText(getString(R.string.format_pressure, data.getFloat(COL_PRESSURE)));
+            mIcon.setImageResource(Utility.weatherCodeToArtPath(mWeatherId));
+
+            float windSpeed = data.getFloat(COL_WIND_SPEED);
+            String windDirection = getWindDirection(data.getFloat(COL_DEGREES));
+            mWind.setText(getString(R.string.format_wind_kmh, windSpeed, windDirection));
+            if(mCompass != null) {
+                mCompass.setAngle(degreesToRadians(data.getFloat(COL_DEGREES)));
+            }
+
+            mDescription.setText(data.getString(ForecastFragment.COL_WEATHER_DESC));
         }
     }
+
+    private float degreesToRadians(float windDirection) {
+        windDirection -= 90;
+        return (float)(windDirection * (Math.PI / 180f));
+    }
+
+    private String getWindDirection(float degrees) {
+        String direction = "Unknown";
+        if (degrees >= 337.5 || degrees < 22.5) {
+            direction = "N";
+        } else if (degrees >= 22.5 && degrees < 67.5) {
+            direction = "NE";
+        } else if (degrees >= 67.5 && degrees < 112.5) {
+            direction = "E";
+        } else if (degrees >= 112.5 && degrees < 157.5) {
+            direction = "SE";
+        } else if (degrees >= 157.5 && degrees < 202.5) {
+            direction = "S";
+        } else if (degrees >= 202.5 && degrees < 247.5) {
+            direction = "SW";
+        } else if (degrees >= 247.5 && degrees < 292.5) {
+            direction = "W";
+        } else if (degrees >= 292.5 || degrees < 337.5) {
+            direction = "NW";
+        }
+        return direction;
+    }
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         detailString = "";
-        text.setText(detailString);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mUri = getBundledUri();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-        Intent intent = getActivity().getIntent();
-        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-
-        if(intent != null) {
-            //detailString = intent.getDataString();
-
-            //detailString = intent.getStringExtra("FORECAST_TEXT");
-            text = (TextView)rootView.findViewById(R.id.detail_view_text);
-            //text.setText(detailString);
-        }
+        mDay = (TextView)rootView.findViewById(R.id.detail_day_textview);
+        mDate = (TextView)rootView.findViewById(R.id.detail_date_textview);
+        mHigh = (TextView)rootView.findViewById(R.id.detail_high_textview);
+        mLow = (TextView)rootView.findViewById(R.id.detail_low_textview);
+        mDescription = (TextView)rootView.findViewById(R.id.detail_forecast_textview);
+        mPressure = (TextView)rootView.findViewById(R.id.detail_pressure_textview);
+        mWind = (TextView)rootView.findViewById(R.id.detail_wind_textview);
+        mHumidity = (TextView)rootView.findViewById(R.id.detail_humidity_textview);
+        mIcon = (ImageView)rootView.findViewById(R.id.detail_icon);
+        mCompass = (TestView)rootView.findViewById(R.id.compass);
 
         return rootView;
     }
@@ -150,5 +241,15 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         String highLowStr = Utility.convertTempToSystemUnit(high, getContext()) + "/" +
                 Utility.convertTempToSystemUnit(low, getContext());
         return highLowStr;
+    }
+
+    public void onLocationChanged(String newLocation) {
+        Uri uri = mUri;
+        if(uri != null) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mUri = updatedUri;
+            getLoaderManager().restartLoader(DETAIL_LOADER_ID, null, this);
+        }
     }
 }
